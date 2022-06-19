@@ -1,0 +1,23 @@
+specVersion: 0.0.1
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: PangolinExchange
+    network: avalanche
+    source:
+      address: "0xefa94DE7a4656D787667C749f7E1223D71E9FD88"
+      abi: PangolinExchange
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - PairCreated
+      abis:
+        - name: PangolinExchange
+          file: ./abis/PangolinExchange.json
+      eventHandlers:
+        - event: PairCreated(indexed address,indexed address,address,uint256)
+          handler: handlePairCreated
+      file: ./src/pangolin-exchange.ts
