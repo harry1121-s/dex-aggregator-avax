@@ -1,13 +1,14 @@
-specVersion: 0.0.1
+specVersion: 0.0.2
 schema:
   file: ./schema.graphql
 dataSources:
-  - kind: ethereum
+  - kind: ethereum/contract
     name: PangolinExchange
     network: avalanche
     source:
-      address: "0xefa94DE7a4656D787667C749f7E1223D71E9FD88"
-      abi: PangolinExchange
+      address: "0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10"
+      abi: TraderJoe
+      startBlock: 2486392
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
@@ -15,9 +16,11 @@ dataSources:
       entities:
         - PairCreated
       abis:
-        - name: PangolinExchange
-          file: ./abis/PangolinExchange.json
+        - name: TraderJoe
+          file: ./abis/TraderJoe.json
+        - name: ERC20
+          file: ./abis/ERC20.json
       eventHandlers:
         - event: PairCreated(indexed address,indexed address,address,uint256)
-          handler: handlePairCreated
+          handler: handlePairCreatedPangolin
       file: ./src/pangolin-exchange.ts
