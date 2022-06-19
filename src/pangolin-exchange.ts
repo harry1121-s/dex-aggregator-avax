@@ -35,34 +35,58 @@ export function handlePairCreatedPangolin(event: PairCreated): void {
 
     // Create Token Instance A
     let _erc20A = ERC20.bind(_tokenA);
-    let _nameA = _erc20A.name();
-    let _symbolA = _erc20A.symbol();
-    let _decimalA = _erc20A.decimals();
+    let _namecallA = _erc20A.try_name();
+    let _symbolcallA = _erc20A.try_symbol();
+    let _decimalcallA = _erc20A.try_decimals();
     
     // Create Token A instance
     let tokenA =  Token.load(_tokenA.toHex());
     if(tokenA === null) {
       tokenA = new Token(_tokenA.toHex());
-      tokenA.name = _nameA;
-      tokenA.symbol = _symbolA;
-      tokenA.decimal = BigInt.fromI64(_decimalA);
+      if(_namecallA.reverted){
+        log.error("Bind Call Error: Function Name for Token: {}",[_tokenA.toHexString()]);
+      } else {
+        tokenA.name = _namecallA.value;
+      }
+      if(_symbolcallA.reverted){
+        log.error("Bind Call Error: Function Name for Token: {}",[_tokenA.toHexString()]);
+      } else {
+        tokenA.symbol = _symbolcallA.value;
+      }
+      if(_decimalcallA.reverted){
+        log.error("Bind Call Error: Function Name for Token: {}",[_tokenA.toHexString()]);
+      } else {
+        tokenA.decimal = BigInt.fromI64(_decimalcallA.value);
+      }
       // tokenA.tokenId = _tokenB.toHexString();
     }
     tokenA.save();
 
     // Create Token Instance B
     let _erc20B = ERC20.bind(_tokenB);
-    let _nameB = _erc20B.name();
-    let _symbolB = _erc20B.symbol();
-    let _decimalB = _erc20B.decimals();
+    let _namecallB = _erc20B.try_name();
+    let _symbolcallB = _erc20B.try_symbol();
+    let _decimalcallB = _erc20B.try_decimals();
     
     // Create Token A instance
     let tokenB =  Token.load(_tokenB.toHex());
     if(tokenB === null) {
       tokenB = new Token(_tokenB.toHex());
-      tokenB.name = _nameB;
-      tokenB.symbol = _symbolB;
-      tokenB.decimal =  BigInt.fromI64(_decimalB);
+      if(_namecallB.reverted){
+        log.error("Bind Call Error: Function Name for Token: {}",[_tokenA.toHexString()]);
+      } else {
+        tokenB.name = _namecallB.value;
+      }
+      if(_symbolcallB.reverted){
+        log.error("Bind Call Error: Function Name for Token: {}",[_tokenA.toHexString()]);
+      } else {
+        tokenB.symbol = _symbolcallB.value;
+      }
+      if(_decimalcallB.reverted){
+        log.error("Bind Call Error: Function Name for Token: {}",[_tokenA.toHexString()]);
+      } else {
+        tokenB.decimal = BigInt.fromI64(_decimalcallB.value);
+      }
       // tokenB.tokenId = tokenA.id;
     }
     tokenB.save();
