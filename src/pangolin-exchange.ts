@@ -1,9 +1,10 @@
 import { BigInt } from "@graphprotocol/graph-ts"
 import {
   PangolinExchange,
-  PairCreated
+  PairCreated,
 } from "../generated/PangolinExchange/PangolinExchange"
-import { Pair,Token } from "../generated/schema"
+import {Sync} from "../generated/JoeRouter/JoeRouter"
+import { Pair,Token, Reserve } from "../generated/schema"
 import {
   ERC20
 } from "../generated/PangolinExchange/ERC20"
@@ -197,6 +198,22 @@ export function handlePairCreatedJoe(event: PairCreated): void {
     pair.tokenBEntity = tokenB.id;
     pair.exchange = _exchange;
     pair.router = _router;
+    pair.reserve = _id.toHexString();
   }
   pair.save();
+}
+
+export function handleSyncReserve(event: Sync): void {
+  // Get all the event data
+  let _pair = event.address.toHexString();
+  let _reserve0 = event.params.reserve0;
+  let _reserve1 = event.params.reserve1;
+
+  let pairReserve = Reserve.load(_pair);
+  if (pairReserve == null){
+    pairReserve = new Reserve(_pair);
+  }
+  pairReserve.reserve0 = _reserve0;
+  pairReserve.reserve1 = _reserve1;
+  pairReserve.save();
 }

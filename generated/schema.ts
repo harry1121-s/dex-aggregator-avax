@@ -23,6 +23,7 @@ export class Pair extends Entity {
     this.set("tokenBEntity", Value.fromString(""));
     this.set("exchange", Value.fromString(""));
     this.set("router", Value.fromString(""));
+    this.set("reserve", Value.fromString(""));
   }
 
   save(): void {
@@ -113,6 +114,15 @@ export class Pair extends Entity {
   set router(value: string) {
     this.set("router", Value.fromString(value));
   }
+
+  get reserve(): string {
+    let value = this.get("reserve");
+    return value!.toString();
+  }
+
+  set reserve(value: string) {
+    this.set("reserve", Value.fromString(value));
+  }
 }
 
 export class Token extends Entity {
@@ -176,5 +186,59 @@ export class Token extends Entity {
 
   set decimal(value: BigInt) {
     this.set("decimal", Value.fromBigInt(value));
+  }
+}
+
+export class Reserve extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+
+    this.set("reserve0", Value.fromBigInt(BigInt.zero()));
+    this.set("reserve1", Value.fromBigInt(BigInt.zero()));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save Reserve entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        "Cannot save Reserve entity with non-string ID. " +
+          'Considering using .toHex() to convert the "id" to a string.'
+      );
+      store.set("Reserve", id.toString(), this);
+    }
+  }
+
+  static load(id: string): Reserve | null {
+    return changetype<Reserve | null>(store.get("Reserve", id));
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    return value!.toString();
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get reserve0(): BigInt {
+    let value = this.get("reserve0");
+    return value!.toBigInt();
+  }
+
+  set reserve0(value: BigInt) {
+    this.set("reserve0", Value.fromBigInt(value));
+  }
+
+  get reserve1(): BigInt {
+    let value = this.get("reserve1");
+    return value!.toBigInt();
+  }
+
+  set reserve1(value: BigInt) {
+    this.set("reserve1", Value.fromBigInt(value));
   }
 }

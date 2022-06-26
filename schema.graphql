@@ -7,6 +7,7 @@ type Pair @entity {
   tokenBEntity: Token!
   exchange: String!
   router: String!
+  reserve: Reserve!
 }
 
 # type SwapPair @entity {
@@ -19,4 +20,10 @@ type Token @entity {
   name: String!
   symbol: String!
   decimal: BigInt!
+}
+
+type Reserve @entity {
+  id: ID!
+  reserve0: BigInt!
+  reserve1: BigInt!
 }
