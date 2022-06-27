@@ -1,14 +1,19 @@
-import { BigInt } from "@graphprotocol/graph-ts"
+import { Address, BigInt } from "@graphprotocol/graph-ts"
 import {
   PangolinExchange,
   PairCreated,
 } from "../generated/PangolinExchange/PangolinExchange"
-import {Sync} from "../generated/JoeRouter/JoeRouter"
+import { AddLiquidityCall, RemoveLiquidityCall, RemoveLiquidityWithPermitCall} from "../generated/JoeRouter/JoeRouter"
+import { Pair as ReservePair } from "../generated/JoeRouter/Pair";
+import { TraderJoe } from "../generated/TraderJoe/TraderJoe"
 import { Pair,Token, Reserve } from "../generated/schema"
 import {
   ERC20
 } from "../generated/PangolinExchange/ERC20"
 import { log } from '@graphprotocol/graph-ts'
+
+const TRADER_JOE = "0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10";
+const PANGOLIN_EXCHANGE = "0xefa94DE7a4656D787667C749f7E1223D71E9FD88";
 
 export function handlePairCreatedPangolin(event: PairCreated): void {
     // Get All Event Parameters
@@ -19,20 +24,6 @@ export function handlePairCreatedPangolin(event: PairCreated): void {
     let _router = "0xE54Ca86531e17Ef3616d22Ca28b0D458b6C89106";
     let _pairId = event.params.param3;
     log.debug("PE - ID: {}\nTokenA: {}\nTokenB: {}\nPairID: {}", [_id.toHexString(),_tokenA.toHexString(),_tokenB.toHexString(),_pairId.toString()]);
-
-    // // Create SwapPair Entity for TokenA
-    // let swapPairA = SwapPair.load(_tokenA.toHexString());
-    // if(!swapPairA) {
-    //   swapPairA = new SwapPair(_tokenA.toHexString());
-    // }
-    // swapPairA.save();
-
-    // // Create SwapPair Entity for TokenB
-    // let swapPairB = SwapPair.load(_tokenB.toHexString());
-    // if(!swapPairB) {
-    //   swapPairB = new SwapPair(_tokenB.toHexString());
-    // }
-    // swapPairB.save();
 
     // Create Token Instance A
     let _erc20A = ERC20.bind(_tokenA);
@@ -203,17 +194,139 @@ export function handlePairCreatedJoe(event: PairCreated): void {
   pair.save();
 }
 
-export function handleSyncReserve(event: Sync): void {
+export function handleAddLiquidityCall(call: AddLiquidityCall): void {
   // Get all the event data
-  let _pair = event.address.toHexString();
-  let _reserve0 = event.params.reserve0;
-  let _reserve1 = event.params.reserve1;
+  let tokenA = call.inputs.tokenA;
+  let tokenB = call.inputs.tokenB;
 
-  let pairReserve = Reserve.load(_pair);
-  if (pairReserve == null){
-    pairReserve = new Reserve(_pair);
+  let factory = TraderJoe.bind(Address.fromString(TRADER_JOE));
+  // Get the Pair corresponding to the tokens
+  let pairX = factory.try_getPair(tokenA,tokenB);
+  let pairY = factory.try_getPair(tokenB,tokenA);
+
+  // If first combination works.
+  if(!pairX.reverted){
+    // Check if the address returned is not a zero address.
+    if(Address.fromString(pairX.value.toString()).notEqual(Address.fromString("0"))){
+      // Create the Pair Object.
+      let pair = ReservePair.bind(Address.fromString(pairX.value.toString()));
+      // Get the reserve values 
+      let _reserves = pair.try_getReserves();
+      if(!_reserves.reverted) {
+        // Get the reserve values
+        let _reserve = _reserves.value;
+        let reserve = Reserve.load(pairX.value.toHexString())
+        if(reserve == null){
+          reserve = new Reserve(pairX.value.toHexString());
+        }
+        // Update the Reserve Values for the pair.
+        reserve.reserve0 = _reserve.value0;
+        reserve.reserve1 = _reserve.value1;
+        reserve.timestamp = _reserve.value2;
+        reserve.save();
+      }
+    }
+  }else if(!pairY.reverted) {
+    if(Address.fromString(pairY.value.toString()).notEqual(Address.fromString("0"))){
+      let pair = ReservePair.bind(Address.fromString(pairY.value.toString()));
+      let _reserves = pair.try_getReserves();
+      if(!_reserves.reverted) {
+        let _reserve = _reserves.value;
+        let reserve = Reserve.load(pairY.value.toHexString())
+        if(reserve == null){
+          reserve = new Reserve(pairY.value.toHexString());
+        }
+        reserve.reserve0 = _reserve.value0;
+        reserve.reserve1 = _reserve.value1;
+        reserve.timestamp = _reserve.value2;
+        reserve.save();
+      }
+    }
   }
-  pairReserve.reserve0 = _reserve0;
-  pairReserve.reserve1 = _reserve1;
-  pairReserve.save();
+}
+
+export function handleRemoveLiquidityCall(call: RemoveLiquidityCall): void {
+  // Get all the event data
+  let tokenA = call.inputs.tokenA;
+  let tokenB = call.inputs.tokenB;
+
+  let factory = TraderJoe.bind(Address.fromString(TRADER_JOE));
+  let pairX = factory.try_getPair(tokenA,tokenB);
+  let pairY = factory.try_getPair(tokenB,tokenA);
+  if(!pairX.reverted){
+    if(Address.fromString(pairX.value.toString()).notEqual(Address.fromString("0"))){
+      let pair = ReservePair.bind(Address.fromString(pairX.value.toString()));
+      let _reserves = pair.try_getReserves();
+      if(!_reserves.reverted) {
+        let _reserve = _reserves.value;
+        let reserve = Reserve.load(pairX.value.toHexString())
+        if(reserve == null){
+          reserve = new Reserve(pairX.value.toHexString());
+        }
+        reserve.reserve0 = _reserve.value0;
+        reserve.reserve1 = _reserve.value1;
+        reserve.timestamp = _reserve.value2;
+        reserve.save();
+      }
+    }
+  }else if(!pairY.reverted) {
+    if(Address.fromString(pairY.value.toString()).notEqual(Address.fromString("0"))){
+      let pair = ReservePair.bind(Address.fromString(pairY.value.toString()));
+      let _reserves = pair.try_getReserves();
+      if(!_reserves.reverted) {
+        let _reserve = _reserves.value;
+        let reserve = Reserve.load(pairY.value.toHexString())
+        if(reserve == null){
+          reserve = new Reserve(pairY.value.toHexString());
+        }
+        reserve.reserve0 = _reserve.value0;
+        reserve.reserve1 = _reserve.value1;
+        reserve.timestamp = _reserve.value2;
+        reserve.save();
+      }
+    }
+  }
+}
+
+export function handleRemoveLiquidityWithPermitCall(call: RemoveLiquidityWithPermitCall): void {
+  // Get all the event data
+  let tokenA = call.inputs.tokenA;
+  let tokenB = call.inputs.tokenB;
+
+  let factory = TraderJoe.bind(Address.fromString(TRADER_JOE));
+  let pairX = factory.try_getPair(tokenA,tokenB);
+  let pairY = factory.try_getPair(tokenB,tokenA);
+  if(!pairX.reverted){
+    if(Address.fromString(pairX.value.toString()).notEqual(Address.fromString("0"))){
+      let pair = ReservePair.bind(Address.fromString(pairX.value.toString()));
+      let _reserves = pair.try_getReserves();
+      if(!_reserves.reverted) {
+        let _reserve = _reserves.value;
+        let reserve = Reserve.load(pairX.value.toHexString())
+        if(reserve == null){
+          reserve = new Reserve(pairX.value.toHexString());
+        }
+        reserve.reserve0 = _reserve.value0;
+        reserve.reserve1 = _reserve.value1;
+        reserve.timestamp = _reserve.value2;
+        reserve.save();
+      }
+    }
+  }else if(!pairY.reverted) {
+    if(Address.fromString(pairY.value.toString()).notEqual(Address.fromString("0"))){
+      let pair = ReservePair.bind(Address.fromString(pairY.value.toString()));
+      let _reserves = pair.try_getReserves();
+      if(!_reserves.reverted) {
+        let _reserve = _reserves.value;
+        let reserve = Reserve.load(pairY.value.toHexString())
+        if(reserve == null){
+          reserve = new Reserve(pairY.value.toHexString());
+        }
+        reserve.reserve0 = _reserve.value0;
+        reserve.reserve1 = _reserve.value1;
+        reserve.timestamp = _reserve.value2;
+        reserve.save();
+      }
+    }
+  }
 }

@@ -62,7 +62,13 @@ dataSources:
       abis:
         - name: JoeRouter
           file: ./abis/JoeRouter.json
-      eventHandlers:
-        - event: Sync(uint112,uint112)
-          handler: handleSyncReserve
+        - name: Pair
+          file: ./abis/Pair.json
+      callHandlers:
+        - function: addLiquidity(address,address,uint256,uint256,uint256,uint256,address,uint256)
+          handler: handleAddLiquidityCall
+        - function: removeLiquidity(address,address,uint256,uint256,uint256,address,uint256)
+          handler: handleRemoveLiquidityCall
+        - function: removeLiquidityWithPermit(address,address,uint256,uint256,uint256,address,uint256,bool,uint8,bytes32,bytes32)
+          handler: handleRemoveLiquidityWithPermitCall
       file: ./src/pangolin-exchange.ts

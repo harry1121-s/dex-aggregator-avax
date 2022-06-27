@@ -196,6 +196,7 @@ export class Reserve extends Entity {
 
     this.set("reserve0", Value.fromBigInt(BigInt.zero()));
     this.set("reserve1", Value.fromBigInt(BigInt.zero()));
+    this.set("timestamp", Value.fromBigInt(BigInt.zero()));
   }
 
   save(): void {
@@ -240,5 +241,14 @@ export class Reserve extends Entity {
 
   set reserve1(value: BigInt) {
     this.set("reserve1", Value.fromBigInt(value));
+  }
+
+  get timestamp(): BigInt {
+    let value = this.get("timestamp");
+    return value!.toBigInt();
+  }
+
+  set timestamp(value: BigInt) {
+    this.set("timestamp", Value.fromBigInt(value));
   }
 }

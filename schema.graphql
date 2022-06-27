@@ -26,4 +26,5 @@ type Reserve @entity {
   id: ID!
   reserve0: BigInt!
   reserve1: BigInt!
+  timestamp: BigInt!
 }
